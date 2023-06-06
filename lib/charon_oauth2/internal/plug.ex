@@ -12,6 +12,7 @@ defmodule CharonOauth2.Internal.Plug do
   def redirect(conn, to) do
     conn
     |> put_resp_content_type("application/json")
+    |> put_resp_header("access-control-allow-origin", "*")
     |> dont_cache()
     |> send_resp(200, Jason.encode!(%{redirect_to: to}))
   end

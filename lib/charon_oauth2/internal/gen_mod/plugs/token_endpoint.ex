@@ -79,7 +79,10 @@ defmodule CharonOauth2.Internal.GenMod.Plugs.TokenEndpoint do
 
       @impl true
       def call(conn = %{method: "POST", path_info: []}, opts) do
-        conn = Parsers.call(conn, @parser_opts)
+        conn =
+          Parsers.call(conn, @parser_opts)
+          |> put_resp_header("access-control-allow-origin", "*")
+
         params = conn.body_params |> Map.put("auth_header", get_req_header(conn, "authorization"))
 
         with cs = %{valid?: true} <-
@@ -111,6 +114,23 @@ defmodule CharonOauth2.Internal.GenMod.Plugs.TokenEndpoint do
                 json_error(conn, 400, "invalid_request", descr, opts)
             end
         end
+      end
+
+      def call(conn = %{method: "OPTIONS", path_info: []}, opts) do
+        allowed_headers = [
+          "Content-Type",
+          "Authorization"
+        ]
+
+        headers = [
+          {"access-control-allow-methods", "POST"},
+          {"access-control-allow-headers", Enum.join(allowed_headers, ", ")},
+          {"access-control-allow-origin", "*"}
+        ]
+
+        conn
+        |> merge_resp_headers(headers)
+        |> send_resp(204, "")
       end
 
       def call(conn, _) do

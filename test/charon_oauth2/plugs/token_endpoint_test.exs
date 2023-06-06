@@ -29,6 +29,12 @@ defmodule CharonOauth2.Plugs.TokenEndpointTest do
                conn(:post, "/test") |> TokenEndpoint.call(seeds.opts) |> assert_dont_cache()
     end
 
+    test "OPTION" do
+      conn(:option, "/")
+      |> TokenEndpoint.call(%{})
+      |> IO.inspect()
+    end
+
     test "parses content-type x-www-form-urlencoded", seeds do
       conn(
         :post,
