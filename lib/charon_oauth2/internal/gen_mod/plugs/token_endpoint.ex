@@ -81,7 +81,10 @@ defmodule CharonOauth2.Internal.GenMod.Plugs.TokenEndpoint do
       def call(conn = %{method: "POST", path_info: []}, opts) do
         conn =
           Parsers.call(conn, @parser_opts)
-          |> put_resp_header("access-control-allow-origin", "*")
+          |> put_resp_header(
+            "access-control-allow-origin",
+            opts.mod_conf.token_endpoint_allowed_origin
+          )
 
         params = conn.body_params |> Map.put("auth_header", get_req_header(conn, "authorization"))
 
@@ -116,7 +119,7 @@ defmodule CharonOauth2.Internal.GenMod.Plugs.TokenEndpoint do
         end
       end
 
-      def call(conn = %{method: "OPTIONS", path_info: []}, opts) do
+      def call(conn = %{method: "OPTIONS", path_info: []}, %{mod_conf: %{token_endpoint_enable_options: true, token_endpoint_allowed_origin: origin}}) do
         allowed_headers = [
           "Content-Type",
           "Authorization"
@@ -125,7 +128,7 @@ defmodule CharonOauth2.Internal.GenMod.Plugs.TokenEndpoint do
         headers = [
           {"access-control-allow-methods", "POST"},
           {"access-control-allow-headers", Enum.join(allowed_headers, ", ")},
-          {"access-control-allow-origin", "*"}
+          {"access-control-allow-origin", origin}
         ]
 
         conn
